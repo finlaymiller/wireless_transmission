@@ -1,0 +1,109 @@
+/*
+ * GccApplication1.c
+ *
+ * Created: 2/24/2017 9:15:06 PM
+ * Author : Administrator
+ */ 
+
+#define F_CPU 14000000UL
+#include <avr/io.h>
+#include <util/delay.h>		// used for delay function
+#include "projectHeader.h"
+
+int display[10]={222, 80, 205, 217, 83, 155, 159, 208, 223, 219};	// binaries for display
+int cid, uid, anumber, acheck;	// commandID and userID
+int transmituid, transmitcid, lightsense, resetID;
+
+int main(void)
+{
+	displayinit();		// run display initialization
+	motorinit();		// run motor initialization
+	anumber = 11;
+	
+	resetID = 0;
+	lightsense = 0;
+	cid = 0;	// set commandID to 0
+	uid = 0;	// set userID to 0
+	PORTD = 222;	// arbitrary PORT set
+	OCR1A = 461;
+	
+    while (1) 
+    {
+		while(!(PINA & (1<<PA0))){		// if switch 1 enabled on PA0
+			OCR1A = 461;
+			lightsense = 0;
+			
+			// temporary test
+			if(resetID==1){
+				cid=0;
+				uid=0;
+				PORTD = 222;
+				resetID=0;
+				_delay_ms(250);	
+			}
+			
+			if(!(PINB & (1<<PB0))){		// if button 2 pressed
+				uid++;					// userID increased by 1
+				if(uid>9) uid=0;		// overflow to 0 if value hits 10
+				PORTD = display[uid];	// display userID on PORTD
+				_delay_ms(300);		// delay for debouncing
+			}
+			
+			if(!(PINC & (1<<PC0))){		// if button 3 pressed
+				cid++;					// commandID increased by 1
+				if(cid>9) cid=0;		
+				PORTD = display[cid];	// display commandID on PORTD
+				_delay_ms(300);	
+			}
+			
+		}
+		
+		while(PINA & (1<<PA0)){			// while switch is disabled
+			
+			
+			
+			if(uid==0 && cid != 0){								
+				
+				if(setAssignment(cid)!=0){
+					anumber = setAssignment(cid);							// if userID was 0, set assignment number
+					PORTD = display[anumber];								// display active assignment number
+				} else if(setAssignment(cid)==0){
+					PORTD = 143;
+					anumber = 11;
+				}
+				resetID=1;
+				
+			} else if(uid != 0 && checkAssignment(anumber, cid)==1){
+				// if assignmentID matches active assignment, turn motor			
+				
+				if(lightsense==0) OCR1A=1843;
+				
+				if(!(PINB & (1<<PB1))){ 
+					if(lightsense != 2) lightsense=1;
+				}
+				
+				while(lightsense==1){
+					OCR1A=1843;
+					if(PINB & (1<<PB1)) {
+						_delay_ms(1000);
+						lightsense=2;
+						resetID=1;
+					}
+				}
+				
+				if(lightsense==2) OCR1A = 461;	
+				
+				
+			} else if(uid != 0 && checkAssignment(anumber, cid)==0){
+				// if assignment number doesnt match active assignment, display 'E'
+				PORTD = 143;
+				resetID=1;
+			} else if(uid==0 && cid==0){
+				
+				resetID=1;
+			}
+			
+		}
+		
+    }
+}

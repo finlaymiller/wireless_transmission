@@ -1,0 +1,35 @@
+#include <stdio.h>
+
+void binaryc(int dec1, int dec2);
+
+int binary[17];
+
+int main(void)
+{
+    printf("enter a decimal: ");
+    int dec1 = get_int();
+    printf("enter decimal2: ");
+    int dec2 = get_int();
+    
+    binary[0]=1;  // sets our first bit to 1 so that 
+    
+    binaryc(dec1, dec2);
+    
+}
+
+// creates binary array of userID and commandID 
+void binaryc(int dec1, int dec2){
+    int remain;
+    
+    for(int i=16; i>=9; i--){
+        remain = dec1%2;
+        binary[i]=remain;
+        dec1=dec1/2;
+    }
+    
+    for(int i=8; i>=1; i--){
+        remain = dec2%2;
+        binary[i]=remain;
+        dec2=dec2/2;
+    }
+}

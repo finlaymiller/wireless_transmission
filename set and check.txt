@@ -1,0 +1,29 @@
+#include <avr/io.h>
+#include <stdio.h>
+#include "projectHeader.h"
+
+int setAssignment(int commandID){
+	int assignmentNum;
+	
+	if(commandID % 2 == 0){			// if commandID is an even number
+		assignmentNum=commandID/2;	// set assignment to commandID/2
+	} else {
+		assignmentNum=0;	// if commandID is an odd number, return 0
+	}
+	
+	return assignmentNum;
+}
+
+
+int checkAssignment(int asnumber, int uasnumber){
+	int check;
+	
+	if(asnumber==uasnumber){
+		check = 1;
+	} else {
+		check = 0;
+	}
+	
+	return check;
+}
+

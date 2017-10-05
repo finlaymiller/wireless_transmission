@@ -1,0 +1,110 @@
+/*
+ * Wireless.c
+ *
+ * Created: 18/03/2017 7:23:45 PM
+ *  Author: Finlay Miller
+ */
+
+
+#include <avr/io.h>
+#include <avr/interrupt.h>
+
+//void send(long frame_data, unsigned int current_data_index);//payload == frame data?
+//void send_start_frame();
+
+unsigned int Count;
+
+ISR (TIMER0_COMPA_vect){
+    ++Count;
+}
+
+int main(void)
+{
+    //Pin initialization
+    DDRD = (0<<PD0);   	//Use PD0 for input
+    DDRD = (1<<PD5);   	//Use PD5 as output
+
+    //Timer1 setup
+    TCCR1A = (1<<COM1A1);		//Set to clear on compare match mode, OCR0A set on bottom
+    TCCR1B = (1<<CS10) | (1<<WGM13);	//Set prescaler to 1 & phase-frequency correct mode
+    TCount1 = 0; 			//Start counting from 0
+
+    //ICR1 = 18432;  //top value, keep OCR value constant and toggle between ICR1 values instead for different outputs square waves   
+   
+    //Interrupt setup on timer0
+    sei();						//set global interrupt enable
+    TCCR0B = (1<<WGM01) | (1<<CS01) | (1<<CS00);    	// CLK/64, prescaler value
+    OCR0A = 114;					//Sets compare value in output compare register 0A
+    PORTC = 0x00;        				//set port C as input
+    //DDRC =  (1<<PC0);    				// Define PORTC Bit 0 as Output
+    TIMSK0 = 2; //interrupt flag register
+    Count=0;
+   
+   
+    while(1){
+        if(PIND & (1<<PD0)){		//check if there is frame data bit is a 1 or 0
+        
+		//Send 120kHz wave    
+		while(Count<1){
+                	ICR1 = 61;		//Set wave period
+                	OCR1A = 31;		//Set high time
+           	 }
+            	Count = 0;
+        }
+        else {
+		//Send 90kHz wave
+        	while(Count<1){
+                	ICR1 = 82;		//Set wave period
+                	OCR1A = 41;		//Set high time
+            	}
+            	Count = 0;
+        }
+    }
+   
+}
+
+/*
+
+void send (long frame_data, unsigned int current_data_index)
+{
+   
+    while (1==1)
+    {
+        current_data_index =0;
+        //check if there is data available
+        for (current_data_index < 17; current_data_index++){ 	//If the next bit is a 1 or 0
+            if(frame_data == 1){			   	//Check if there is frame data bit is a 1 or 0
+                while(Count<1){   
+                    //Send 120kHz wave
+                    ICR1 = 61;
+                    OCR1A = 15;
+                }
+                Count = 0;
+            }
+            else {
+                while(Count<1){   
+                    //Send 90kHz wave
+                    ICR1 = 82;
+                    OCR1A = 20;
+                }
+                Count = 0;
+            }   
+        }
+        if (current_data_index == 16)
+        current_data_index = 0;
+    }
+   
+}
+
+void send_start_frame(){		//send first start bit over 1 ms
+    
+	Count = 0;
+    	while (Count < 1)
+    	{
+        	//send 120kHz as start bit for 1 msec
+        	ICR1 = 61;
+        	OCR1A = 15;
+    	}
+    	Count = 0;
+}
+*/

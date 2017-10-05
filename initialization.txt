@@ -1,0 +1,21 @@
+#include <avr/io.h>
+#include "projectHeader.h"
+
+void displayinit(void){
+	DDRA = 0x00;	// PORTA input
+	DDRB = 0x00;	// PORTB input
+	DDRC = 0x00;	// PORTC input
+	DDRD = 0xFF;	// PORTD output
+	PORTA = (1<<0);	// PA0 pull-up
+	PORTB = (1<<0);	// PB0 pull-up
+	PORTC = (1<<0);	// PC0 pull-up
+	PORTD = 1;		// PORTD initially 1
+}
+
+void motorinit(void){
+	TCCR1A = (1<<COM1A1);
+	TCCR1B = (1<<CS11) | (1<<WGM13);
+	TCNT1 = 0;
+	ICR1 = 18432;
+}
+
